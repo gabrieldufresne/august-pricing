@@ -265,6 +265,26 @@ export const MISC_DESIGN = {
 }
 
 // ---------------------------------------------------------------------------
+// Category 8 — Email Design & Production (no bundle)
+// ---------------------------------------------------------------------------
+
+export const EMAIL_DESIGN = {
+  id: 'email_design',
+  label: 'Email Design & Production',
+  bundleRange: null, // no bundle pricing
+  services: [
+    { id: 'email_template_design',  label: 'Email Template Design (Figma)',  low: 1000, high: 2500, floor:  500 },
+    { id: 'klaviyo_template_build', label: 'Klaviyo Template Build',          low:  750, high: 2000, floor:  400 },
+    { id: 'flow_welcome',           label: 'Flow — Welcome Series',           low: 2000, high: 5000, floor: 1000 },
+    { id: 'flow_post_purchase',     label: 'Flow — Post-Purchase',            low: 1500, high: 4000, floor:  750 },
+    { id: 'flow_abandoned_cart',    label: 'Flow — Abandoned Cart',           low: 1500, high: 3500, floor:  750 },
+    { id: 'flow_winback',           label: 'Flow — Win-back',                 low: 1500, high: 3500, floor:  750 },
+    { id: 'campaign_email',         label: 'Campaign Email (design + build)', low: 1000, high: 2500, floor:  500 },
+    { id: 'custom_html_build',      label: 'Custom HTML Build',               low: 2500, high: 6000, floor: 1250 },
+  ],
+}
+
+// ---------------------------------------------------------------------------
 // All categories (ordered)
 // ---------------------------------------------------------------------------
 
@@ -276,6 +296,7 @@ export const CATEGORIES = [
   COPYWRITING,
   PR_COMMS,
   MISC_DESIGN,
+  EMAIL_DESIGN,
 ]
 
 // ---------------------------------------------------------------------------

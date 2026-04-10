@@ -166,6 +166,13 @@ export function EstimateResult({ result, onReset }) {
     lines.push('')
     lines.push(`GRAND TOTAL: ${fmt(result.grandTotalLow)} – ${fmt(result.grandTotalHigh)} CAD`)
 
+    if (result.coAgency?.active) {
+      lines.push('')
+      const coName = result.coAgency.partnerName ? result.coAgency.partnerName : 'Co-agency partner'
+      const coFee = result.coAgency.approxFee ? ` (~${fmt(result.coAgency.approxFee)})` : ''
+      lines.push(`NOTE: ${coName} will invoice the client separately for their scope${coFee}.`)
+    }
+
     if (result.flags?.length > 0) {
       lines.push('')
       lines.push('FLAGS')
@@ -224,22 +231,28 @@ export function EstimateResult({ result, onReset }) {
         <p className="text-xs text-muted-foreground mt-1.5">CAD · before partner costs</p>
       </motion.div>
 
-      {/* 2. Applied Discounts */}
-      {hasDiscounts && (
+      {/* 1b. Referral Fee + Your Net (internal only) */}
+      {result.referral?.active && (
         <motion.div variants={fadeUp} className="space-y-1.5">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-            Discounts applied
-          </p>
           <div className="rounded-lg border border-border divide-y divide-border">
-            {result.appliedDiscounts.map((d, i) => (
-              <div key={i} className="flex items-center justify-between px-3 py-2">
-                <span className="text-xs text-foreground">{d.label}</span>
-                <span className="text-xs font-medium tabular-nums text-foreground">
-                  {d.type === '%' ? `−${d.value}%` : `−${fmt(d.value)}`}
-                </span>
-              </div>
-            ))}
+            <div className="flex items-center justify-between px-3 py-2">
+              <span className="text-xs text-foreground">
+                Referral Fee{result.referral.referrerName ? ` — ${result.referral.referrerName}` : ''}
+              </span>
+              <span className="text-xs font-medium tabular-nums text-foreground">
+                {result.referral.amountLow === result.referral.amountHigh
+                  ? `−${fmt(result.referral.amountLow)}`
+                  : `−${fmt(result.referral.amountLow)} – −${fmt(result.referral.amountHigh)}`}
+              </span>
+            </div>
           </div>
+          <p className="text-xs text-muted-foreground">
+            Your Net:{' '}
+            <span className="font-medium tabular-nums text-foreground">
+              {fmt(result.yourNetLow)} – {fmt(result.yourNetHigh)}
+            </span>
+            {' '}CAD
+          </p>
         </motion.div>
       )}
 
@@ -269,12 +282,9 @@ export function EstimateResult({ result, onReset }) {
                       {item.platform && ` · ${item.platform}`}
                     </p>
                   </div>
-                  <div className="text-right shrink-0 tabular-nums">
-                    <p className="text-xs font-medium text-foreground">
-                      {fmt(item.adjLow)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">– {fmt(item.adjHigh)}</p>
-                  </div>
+                  <p className="text-xs font-medium text-foreground tabular-nums shrink-0">
+                    {fmt(item.adjLow)} – {fmt(item.adjHigh)}
+                  </p>
                 </div>
 
                 {/* Client contribution discount rows */}
@@ -331,6 +341,22 @@ export function EstimateResult({ result, onReset }) {
         </motion.div>
       )}
 
+      {/* 4b. Discounts — right above Grand Total */}
+      {hasDiscounts && (
+        <motion.div variants={fadeUp}>
+          <div className="rounded-lg border border-green-200 bg-green-50 divide-y divide-green-100">
+            {result.appliedDiscounts.map((d, i) => (
+              <div key={i} className="flex items-center justify-between px-3 py-2">
+                <span className="text-xs text-green-700">{d.label}</span>
+                <span className="text-xs font-medium tabular-nums text-green-700">
+                  {d.type === '%' ? `−${d.value}%` : `−${fmt(d.value)}`}
+                </span>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
       {/* 5. Grand Total */}
       <motion.div variants={fadeUp} className="rounded-lg bg-foreground px-4 py-3.5">
         <p className="text-[10px] font-semibold uppercase tracking-widest text-background/60 mb-1">
@@ -356,6 +382,21 @@ export function EstimateResult({ result, onReset }) {
               <p className="text-xs text-amber-800">{flag}</p>
             </div>
           ))}
+        </motion.div>
+      )}
+
+      {/* 6b. Co-Agency note */}
+      {result.coAgency?.active && (
+        <motion.div variants={fadeUp}>
+          <div className="flex gap-2.5 items-start rounded-lg border border-blue-200 bg-blue-50 px-3 py-2.5">
+            <div className="w-3.5 h-3.5 shrink-0 mt-0.5 rounded-full bg-blue-400" />
+            <p className="text-xs text-blue-800">
+              Co-agency arrangement
+              {result.coAgency.partnerName ? `: ${result.coAgency.partnerName}` : ''} will invoice the client directly for their scope
+              {result.coAgency.approxFee ? ` (~${fmt(result.coAgency.approxFee)})` : ''}.
+              {' '}Not included in your total.
+            </p>
+          </div>
         </motion.div>
       )}
 

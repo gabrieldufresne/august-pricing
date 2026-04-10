@@ -306,6 +306,21 @@ function evaluateFlags(formData, lineItems) {
     flags.push('4+ landing pages selected — redirect to Website Design category for accurate pricing.')
   }
 
+  // Email Design & Production flags
+  const emailSelected = formData.selectedServices?.email_design ?? []
+  if (emailSelected.includes('custom_html_build')) {
+    flags.push('Custom HTML email build selected — confirm whether this will be subcontracted. Factor subcontractor cost into the Contractors panel.')
+  }
+  if (emailSelected.some((id) => id.startsWith('flow_') || id.startsWith('klaviyo_'))) {
+    flags.push('Klaviyo subscription and sending costs are the client\'s responsibility — not included in this estimate.')
+  }
+  if (emailSelected.includes('email_template_design') && !emailSelected.includes('klaviyo_template_build')) {
+    flags.push('Email Template Design selected without a Klaviyo Template Build — confirm the client has a developer handling the build.')
+  }
+  if (emailSelected.includes('klaviyo_template_build') && !emailSelected.includes('email_template_design')) {
+    flags.push('Klaviyo Template Build selected without an Email Template Design — confirm design assets are being supplied by the client.')
+  }
+
   if (overrideAmt > 0) {
     // Convert to percentage for comparison
     let overridePct = 0
@@ -415,6 +430,31 @@ export function calculateEstimate(formData, config = null) {
   adjustedLow  = roundTo500(Math.max(0, adjustedLow))
   adjustedHigh = roundTo500(Math.max(0, adjustedHigh))
 
+  // ── Partner Arrangement ───────────────────────────────────────────────────
+  const partnerArrangement = formData.partnerArrangement ?? {}
+
+  // Referral Fee — internal deduction, does not affect grand total
+  const referralData = partnerArrangement.referral ?? {}
+  let referralAmountLow = 0
+  let referralAmountHigh = 0
+  if (referralData.active) {
+    const val = parseFloat(referralData.value) || 0
+    if (val > 0) {
+      if (referralData.mode === '%') {
+        referralAmountLow  = adjustedLow  * (val / 100)
+        referralAmountHigh = adjustedHigh * (val / 100)
+      } else {
+        referralAmountLow  = val
+        referralAmountHigh = val
+      }
+    }
+  }
+  const yourNetLow  = roundTo500(Math.max(0, adjustedLow  - referralAmountLow))
+  const yourNetHigh = roundTo500(Math.max(0, adjustedHigh - referralAmountHigh))
+
+  // Co-Agency — awareness only, no math impact
+  const coAgencyData = partnerArrangement.coAgency ?? {}
+
   // ── Contractors ───────────────────────────────────────────────────────────
   const contractors = []
   const contractorInputs = formData.contractors ?? {}
@@ -447,12 +487,27 @@ export function calculateEstimate(formData, config = null) {
   // ── Flags ──────────────────────────────────────────────────────────────────
   const flags = evaluateFlags(formData, lineItems)
 
+  if (referralData.active && referralAmountLow > 0 && subtotalLow > 0) {
+    const pct = (referralAmountLow / subtotalLow) * 100
+    if (pct > 20) {
+      flags.push('Referral fee exceeds 20% of your fee — confirm this is intentional before proceeding.')
+    }
+  }
+
   // ── Result object ──────────────────────────────────────────────────────────
   return {
     augustFeeLow:   adjustedLow,
     augustFeeHigh:  adjustedHigh,
     grandTotalLow,
     grandTotalHigh,
+    referral: referralData.active && (referralAmountLow > 0 || referralAmountHigh > 0)
+      ? { active: true, referrerName: referralData.referrerName || null, amountLow: roundTo500(referralAmountLow), amountHigh: roundTo500(referralAmountHigh) }
+      : { active: false },
+    yourNetLow,
+    yourNetHigh,
+    coAgency: coAgencyData.active
+      ? { active: true, partnerName: coAgencyData.partnerName || null, approxFee: parseFloat(coAgencyData.approxFee) || null }
+      : { active: false },
     currency: 'CAD',
     scopeType: formData.scopeType ?? 'full',
     lineItems,

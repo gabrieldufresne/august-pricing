@@ -71,7 +71,7 @@ export function ContractorPanel({ formData, onChange }) {
           <div key={contractor.id} className="rounded-lg overflow-hidden">
             {/* Main row */}
             <div
-              className="flex items-center gap-3 px-3 py-2.5 hover:bg-secondary/50 transition-colors cursor-pointer"
+              className="flex items-center gap-3 px-3 py-1.5 hover:bg-secondary/50 transition-colors cursor-pointer"
               onClick={() => !suppressed && handleCheck(contractor.id, !isOpen)}
             >
               <Checkbox

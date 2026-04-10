@@ -2,6 +2,7 @@ import * as React from 'react'
 import { ServiceSelector } from './ServiceSelector'
 import { ClientContribution } from './ClientContribution'
 import { ContractorPanel } from './ContractorPanel'
+import { PartnerPanel } from './PartnerPanel'
 import { PriceAdjustment } from './PriceAdjustment'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -31,6 +32,7 @@ const DEFAULT_FORM = {
     copywriting: [],
     pr_comms: [],
     misc_design: [],
+    email_design: [],
   },
   websiteDevPlatform: null,
   websiteDesignPageCount: '11_20',
@@ -45,6 +47,7 @@ const DEFAULT_FORM = {
     copywriting: 'medium',
     pr_comms: 'medium',
     misc_design: 'medium',
+    email_design: 'medium',
   },
   clientScale: 'small',
   clientLocation: 'montreal',
@@ -57,6 +60,10 @@ const DEFAULT_FORM = {
   customDiscountValue: '',
   customDiscountType: '%',
   customDiscountReason: '',
+  partnerArrangement: {
+    referral: { active: false, referrerName: '', mode: '%', value: '' },
+    coAgency: { active: false, partnerName: '', approxFee: '' },
+  },
 }
 
 // ---------------------------------------------------------------------------
@@ -354,7 +361,12 @@ export function EstimatorForm({ onResultChange, onResetRef, config = null }) {
         </div>
       </Section>
 
-      {/* G — Discounts */}
+      {/* G — Partner Arrangement */}
+      <Section title="Partner Arrangement">
+        <PartnerPanel formData={formData} onChange={handleChange} />
+      </Section>
+
+      {/* H — Discounts */}
       <Section title="Discounts">
         <PriceAdjustment formData={formData} onChange={handleChange} />
       </Section>
