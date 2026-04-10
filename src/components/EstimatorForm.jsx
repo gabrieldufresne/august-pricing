@@ -129,7 +129,7 @@ function TimelineSection({ formData, onChange }) {
 // EstimatorForm
 // ---------------------------------------------------------------------------
 
-export function EstimatorForm({ onResultChange, onResetRef }) {
+export function EstimatorForm({ onResultChange, onResetRef, config = null }) {
   const [formData, setFormData] = React.useState(DEFAULT_FORM)
 
   function handleChange(key, value) {
@@ -146,7 +146,7 @@ export function EstimatorForm({ onResultChange, onResetRef }) {
   })
 
   React.useEffect(() => {
-    const result = calculateEstimate(formData)
+    const result = calculateEstimate(formData, config)
     if (result) {
       onResultChange({
         ...result,
@@ -157,7 +157,7 @@ export function EstimatorForm({ onResultChange, onResetRef }) {
     } else {
       onResultChange(null)
     }
-  }, [formData])
+  }, [formData, config])
 
   return (
     <div className="space-y-4">

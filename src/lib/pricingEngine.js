@@ -80,33 +80,35 @@ function resolveCategoryServices(category, formData) {
 
 // ---------------------------------------------------------------------------
 // resolveBundleRange — returns the active bundle range for a category
+// bundleRangesOverride: optional { [key]: { low, high } } from config
 // ---------------------------------------------------------------------------
 
-function resolveBundleRange(category, formData) {
+function resolveBundleRange(category, formData, bundleRangesOverride) {
   if (category.id === 'website_dev') {
     const platform = formData.websiteDevPlatform
     if (!platform || !WEBSITE_DEV.platforms[platform]) return null
-    return WEBSITE_DEV.platforms[platform].bundleRange
+    const key = `website_dev_${platform}`
+    return bundleRangesOverride?.[key] ?? WEBSITE_DEV.platforms[platform].bundleRange
   }
-  return category.bundleRange
+  return bundleRangesOverride?.[category.id] ?? category.bundleRange
 }
 
 // ---------------------------------------------------------------------------
 // computeCategoryResult — processes one category and returns a line item
 // ---------------------------------------------------------------------------
 
-function computeCategoryResult(category, formData, globalMult) {
+function computeCategoryResult(category, formData, globalMult, ctx) {
   const catId = category.id
   const selectedIds = formData.selectedServices?.[catId] ?? []
 
   if (selectedIds.length === 0) return null
 
   const allServices = resolveCategoryServices(category, formData)
-  const bundleRange = resolveBundleRange(category, formData)
+  const bundleRange = resolveBundleRange(category, formData, ctx.bundleRanges)
   const allSelected = allServices.length > 0 && selectedIds.length === allServices.length
   const selectedServices = allServices.filter((s) => selectedIds.includes(s.id))
 
-  // Step 1 — Base range
+  // Step 1 — Base range (use config overrides for low/high when present)
   let baseLow, baseHigh
   let isBundle = false
 
@@ -115,8 +117,8 @@ function computeCategoryResult(category, formData, globalMult) {
     baseHigh = bundleRange.high
     isBundle = true
   } else {
-    baseLow = selectedServices.reduce((sum, s) => sum + s.low, 0)
-    baseHigh = selectedServices.reduce((sum, s) => sum + s.high, 0)
+    baseLow = selectedServices.reduce((sum, s) => sum + (ctx.servicePrices?.[s.id]?.low ?? s.low), 0)
+    baseHigh = selectedServices.reduce((sum, s) => sum + (ctx.servicePrices?.[s.id]?.high ?? s.high), 0)
   }
 
   // Step 2 — Client contribution discounts
@@ -133,11 +135,14 @@ function computeCategoryResult(category, formData, globalMult) {
       // If discount is scoped to a specific serviceId, only apply when that service is selected
       if (discount.serviceId && !selectedIds.includes(discount.serviceId)) continue
 
-      // For bundle, apply discount to full range. For partial, apply proportionally.
-      baseLow = baseLow * (1 - discount.pct)
-      baseHigh = baseHigh * (1 - discount.pct)
+      // Use config override for the discount pct if available
+      const pct = ctx.contribDiscounts?.[toggleId]?.[catId] ?? discount.pct
 
-      appliedDiscounts.push({ label: discount.label, pct: discount.pct })
+      // For bundle, apply discount to full range. For partial, apply proportionally.
+      baseLow = baseLow * (1 - pct)
+      baseHigh = baseHigh * (1 - pct)
+
+      appliedDiscounts.push({ label: discount.label, pct })
     }
   }
 
@@ -168,8 +173,8 @@ function computeCategoryResult(category, formData, globalMult) {
 
   if (catId === 'misc_design') {
     for (const svc of selectedServices) {
-      let svcLow = svc.low
-      let svcHigh = svc.high
+      let svcLow = ctx.servicePrices?.[svc.id]?.low ?? svc.low
+      let svcHigh = ctx.servicePrices?.[svc.id]?.high ?? svc.high
 
       if (svc.modifier === 'page_count_landing') {
         const tierId = formData.landingPageCount
@@ -206,7 +211,7 @@ function computeCategoryResult(category, formData, globalMult) {
 
   // Step 5 — Per-category complexity multiplier
   const complexityId = formData.complexity?.[catId] ?? 'medium'
-  const complexityMult = COMPLEXITY_MULTIPLIERS[complexityId] ?? 1.0
+  const complexityMult = ctx.complexityMults[complexityId] ?? 1.0
 
   baseLow = baseLow * complexityMult
   baseHigh = baseHigh * complexityMult
@@ -217,7 +222,7 @@ function computeCategoryResult(category, formData, globalMult) {
 
   // Step 7 — Enforce floor (per service or bundle floor)
   // For bundle: use sum of all service floors as the minimum
-  const floorValue = selectedServices.reduce((sum, s) => sum + s.floor, 0)
+  const floorValue = selectedServices.reduce((sum, s) => sum + (ctx.servicePrices?.[s.id]?.floor ?? s.floor), 0)
   baseLow = Math.max(baseLow, floorValue)
   baseHigh = Math.max(baseHigh, floorValue)
 
@@ -307,17 +312,30 @@ function evaluateFlags(formData, lineItems) {
 // calculateEstimate — main export
 // ---------------------------------------------------------------------------
 
-export function calculateEstimate(formData) {
-  // ── Global multiplier ──────────────────────────────────────────────────────
-  const scaleMult     = getMultiplier(CLIENT_SCALE_MULTIPLIERS, formData.clientScale, 1.0)
-  const locationMult  = getMultiplier(LOCATION_MULTIPLIERS, formData.clientLocation, 1.0)
-  const bandwidthMult = getMultiplier(BANDWIDTH_MULTIPLIERS, formData.bandwidth, 1.0)
+export function calculateEstimate(formData, config = null) {
+  // ── Build config context (falls back to static imports when config is null) ─
+  const ctx = {
+    complexityMults:  config?.complexityMultipliers  ?? COMPLEXITY_MULTIPLIERS,
+    scaleMults:       config?.clientScaleMultipliers ?? CLIENT_SCALE_MULTIPLIERS,
+    locationMults:    config?.locationMultipliers    ?? LOCATION_MULTIPLIERS,
+    timelineMults:    config?.timelineMultipliers    ?? TIMELINE_MULTIPLIERS,
+    bandwidthMults:   config?.bandwidthMultipliers   ?? BANDWIDTH_MULTIPLIERS,
+    servicePrices:    config?.servicePrices          ?? null,
+    bundleRanges:     config?.bundleRanges           ?? null,
+    contribDiscounts: config?.clientContributionDiscounts ?? null,
+  }
 
-  // Timeline: derive from dates, or fall back to explicit override
+  // ── Global multiplier ──────────────────────────────────────────────────────
+  const scaleMult     = getMultiplier(ctx.scaleMults, formData.clientScale, 1.0)
+  const locationMult  = getMultiplier(ctx.locationMults, formData.clientLocation, 1.0)
+  const bandwidthMult = getMultiplier(ctx.bandwidthMults, formData.bandwidth, 1.0)
+
+  // Timeline: derive from dates — getTimelineTier uses static tiers for tier ID,
+  // then we look up the (possibly overridden) multiplier from ctx.timelineMults
   let timelineMult = 1.0
   const businessDays = computeBusinessDays(formData.startDate, formData.endDate)
   const timelineTier = getTimelineTier(businessDays)
-  timelineMult = timelineTier ? timelineTier.multiplier : 1.0
+  timelineMult = timelineTier ? getMultiplier(ctx.timelineMults, timelineTier.id, timelineTier.multiplier) : 1.0
 
   const globalMult = scaleMult * locationMult * timelineMult * bandwidthMult
 
@@ -325,7 +343,7 @@ export function calculateEstimate(formData) {
   const lineItems = []
 
   for (const category of CATEGORIES) {
-    const result = computeCategoryResult(category, formData, globalMult)
+    const result = computeCategoryResult(category, formData, globalMult, ctx)
     if (result) lineItems.push(result)
   }
 

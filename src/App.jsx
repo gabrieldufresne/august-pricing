@@ -2,11 +2,15 @@ import * as React from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { EstimatorForm } from './components/EstimatorForm'
 import { EstimateResult } from './components/EstimateResult'
+import { useConfigStore } from './lib/useConfigStore'
+import { ConfigEditor } from './components/ConfigEditor'
 import './index.css'
 
 export default function App() {
   const [result, setResult] = React.useState(null)
   const resetRef = React.useRef(null)
+  const { config, setConfig, resetConfig } = useConfigStore()
+  const [editorOpen, setEditorOpen] = React.useState(false)
 
   function handleReset() {
     if (resetRef.current) resetRef.current()
@@ -24,7 +28,15 @@ export default function App() {
             <span className="text-muted-foreground">·</span>
             <span className="text-sm text-muted-foreground">Estimator</span>
           </div>
-          <span className="text-xs text-muted-foreground">Internal · v1.0</span>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setEditorOpen(true)}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Edit Config
+            </button>
+            <span className="text-xs text-muted-foreground">Internal · v1.0</span>
+          </div>
         </div>
       </header>
 
@@ -34,7 +46,7 @@ export default function App() {
 
           {/* LEFT — Form */}
           <div>
-            <EstimatorForm onResultChange={setResult} onResetRef={resetRef} />
+            <EstimatorForm onResultChange={setResult} onResetRef={resetRef} config={config} />
           </div>
 
           {/* RIGHT — Result (sticky) */}
@@ -55,6 +67,15 @@ export default function App() {
 
         </div>
       </div>
+
+      {/* Config Editor */}
+      <ConfigEditor
+        open={editorOpen}
+        onClose={() => setEditorOpen(false)}
+        config={config}
+        onConfigChange={setConfig}
+        onReset={resetConfig}
+      />
     </div>
   )
 }
