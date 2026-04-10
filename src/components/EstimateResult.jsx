@@ -128,7 +128,8 @@ export function EstimateResult({ result, onReset }) {
   // --- Copy to clipboard ---
   function handleCopy() {
     const lines = []
-    lines.push(`August Estimator — ${result.projectName || 'Untitled'}`)
+    const scopeLabel = result.scopeType === 'campaign' ? 'Campaign / Project' : 'Full Engagement'
+    lines.push(`August Estimator — ${result.projectName || 'Untitled'} (${scopeLabel})`)
     if (result.projectObjective) lines.push(result.projectObjective)
     lines.push('')
     lines.push(`August Fee: ${fmt(result.augustFeeLow)} – ${fmt(result.augustFeeHigh)} CAD`)
@@ -202,9 +203,19 @@ export function EstimateResult({ result, onReset }) {
     >
       {/* 1. Price Range Hero */}
       <motion.div variants={fadeUp}>
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">
-          August Fee
-        </p>
+        <div className="flex items-center gap-2 mb-1.5">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            August Fee
+          </p>
+          <span className={cn(
+            'text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded',
+            result.scopeType === 'campaign'
+              ? 'bg-amber-100 text-amber-700'
+              : 'bg-secondary text-muted-foreground'
+          )}>
+            {result.scopeType === 'campaign' ? 'Campaign / Project' : 'Full Engagement'}
+          </span>
+        </div>
         <p className="text-[28px] font-semibold tracking-tight tabular-nums leading-none">
           <AnimatedPrice value={result.augustFeeLow} />
           {' – '}

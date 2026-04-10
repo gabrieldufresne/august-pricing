@@ -12,6 +12,7 @@ import {
   BANDWIDTH_MULTIPLIERS,
   CATEGORIES,
   CLIENT_CONTRIBUTIONS,
+  CAMPAIGN_STANDALONE_SCALAR,
 } from './pricingConfig.js'
 
 export function buildDefaultConfig() {
@@ -66,6 +67,9 @@ export function buildDefaultConfig() {
     servicePrices,
     bundleRanges,
     clientContributionDiscounts,
+
+    // Campaign / Project mode scalar — applied to all service ranges when scope type is 'campaign'
+    campaignScalar: CAMPAIGN_STANDALONE_SCALAR,
   }
 }
 

@@ -18,6 +18,7 @@ import {
   SKU_COUNT_TIERS,
   CLIENT_CONTRIBUTIONS,
   CONTRACTOR_MARKUP_RATE,
+  CAMPAIGN_STANDALONE_SCALAR,
 } from './pricingConfig.js'
 
 // ---------------------------------------------------------------------------
@@ -109,16 +110,25 @@ function computeCategoryResult(category, formData, globalMult, ctx) {
   const selectedServices = allServices.filter((s) => selectedIds.includes(s.id))
 
   // Step 1 — Base range (use config overrides for low/high when present)
+  const isCampaign = (formData.scopeType ?? 'full') === 'campaign'
+  const campaignScalar = ctx.campaignScalar ?? CAMPAIGN_STANDALONE_SCALAR
+
   let baseLow, baseHigh
   let isBundle = false
 
-  if (allSelected && bundleRange) {
+  if (!isCampaign && allSelected && bundleRange) {
+    // Bundle pricing only applies in Full Engagement mode
     baseLow = bundleRange.low
     baseHigh = bundleRange.high
     isBundle = true
   } else {
     baseLow = selectedServices.reduce((sum, s) => sum + (ctx.servicePrices?.[s.id]?.low ?? s.low), 0)
     baseHigh = selectedServices.reduce((sum, s) => sum + (ctx.servicePrices?.[s.id]?.high ?? s.high), 0)
+    // Campaign scalar applied here for non-misc categories; misc_design applies it per-service below
+    if (isCampaign && catId !== 'misc_design') {
+      baseLow *= campaignScalar
+      baseHigh *= campaignScalar
+    }
   }
 
   // Step 2 — Client contribution discounts
@@ -175,6 +185,12 @@ function computeCategoryResult(category, formData, globalMult, ctx) {
     for (const svc of selectedServices) {
       let svcLow = ctx.servicePrices?.[svc.id]?.low ?? svc.low
       let svcHigh = ctx.servicePrices?.[svc.id]?.high ?? svc.high
+
+      // Campaign scalar applied to base price before volume modifiers
+      if (isCampaign) {
+        svcLow *= campaignScalar
+        svcHigh *= campaignScalar
+      }
 
       if (svc.modifier === 'page_count_landing') {
         const tierId = formData.landingPageCount
@@ -323,6 +339,7 @@ export function calculateEstimate(formData, config = null) {
     servicePrices:    config?.servicePrices          ?? null,
     bundleRanges:     config?.bundleRanges           ?? null,
     contribDiscounts: config?.clientContributionDiscounts ?? null,
+    campaignScalar:   config?.campaignScalar         ?? CAMPAIGN_STANDALONE_SCALAR,
   }
 
   // ── Global multiplier ──────────────────────────────────────────────────────
@@ -437,6 +454,7 @@ export function calculateEstimate(formData, config = null) {
     grandTotalLow,
     grandTotalHigh,
     currency: 'CAD',
+    scopeType: formData.scopeType ?? 'full',
     lineItems,
     subtotalLow,
     subtotalHigh,

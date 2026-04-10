@@ -10,6 +10,7 @@
 export const HOURLY_RATE_REFERENCE = 180 // CAD — reference only, not used in math
 export const CONTRACTOR_MARKUP_RATE = 0.10 // 10% applied to all contractor costs
 export const ADDON_DISCOUNT = 0.08 // 8% discount per additional service within a category
+export const CAMPAIGN_STANDALONE_SCALAR = 1.12 // Applied to service ranges in Campaign / Project mode (no bundles, standalone delivery)
 
 // ---------------------------------------------------------------------------
 // Complexity multipliers (per-category)

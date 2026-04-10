@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils'
 // ---------------------------------------------------------------------------
 
 const DEFAULT_FORM = {
+  scopeType: 'full',
   projectName: '',
   projectObjective: '',
   notes: '',
@@ -71,6 +72,47 @@ function Section({ title, children }) {
         </h3>
       </div>
       <div className="p-5">{children}</div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// ScopeTypeSelector — Full Engagement vs Campaign / Project
+// ---------------------------------------------------------------------------
+
+function ScopeTypeSelector({ value, onChange }) {
+  const isCampaign = value === 'campaign'
+  return (
+    <div className="space-y-3">
+      <ToggleGroup
+        type="single"
+        value={value}
+        onValueChange={(v) => { if (v) onChange('scopeType', v) }}
+        className="justify-start gap-2"
+      >
+        {[
+          { id: 'full',     label: 'Full Engagement' },
+          { id: 'campaign', label: 'Campaign / Project' },
+        ].map(({ id, label }) => (
+          <ToggleGroupItem
+            key={id}
+            value={id}
+            size="sm"
+            className={cn(
+              'h-8 px-4 text-xs rounded-md border border-border font-medium',
+              'data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:border-foreground',
+              'data-[state=off]:bg-transparent data-[state=off]:text-muted-foreground'
+            )}
+          >
+            {label}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+      <p className="text-xs text-muted-foreground">
+        {isCampaign
+          ? 'Bundle pricing disabled. Services priced as standalone deliverables — discovery overhead not shared.'
+          : 'Bundle pricing applies. Discovery overhead amortized across the full project scope.'}
+      </p>
     </div>
   )
 }
@@ -161,6 +203,11 @@ export function EstimatorForm({ onResultChange, onResetRef, config = null }) {
 
   return (
     <div className="space-y-4">
+
+      {/* 0 — Scope Type */}
+      <Section title="Scope Type">
+        <ScopeTypeSelector value={formData.scopeType} onChange={handleChange} />
+      </Section>
 
       {/* A — Project Basics */}
       <Section title="Project Basics">

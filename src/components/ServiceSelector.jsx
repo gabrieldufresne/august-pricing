@@ -218,6 +218,7 @@ function CategoryAccordionItem({ category, formData, onChange }) {
   const selectedCount = selectedIds.length
   const totalCount = activeServices.length
   const allSelected = totalCount > 0 && selectedCount === totalCount
+  const isCampaign = formData.scopeType === 'campaign'
   const hasBundle = isWebsiteDev
     ? !!WEBSITE_DEV.platforms[formData.websiteDevPlatform]?.bundleRange
     : !!category.bundleRange
@@ -295,7 +296,7 @@ function CategoryAccordionItem({ category, formData, onChange }) {
                 transition={{ duration: 0.12 }}
               >
                 <Badge variant="secondary" className="text-xs tabular-nums">
-                  {allSelected && hasBundle ? 'Bundle' : `${selectedCount}/${totalCount}`}
+                  {!isCampaign && allSelected && hasBundle ? 'Bundle' : `${selectedCount}/${totalCount}`}
                 </Badge>
               </motion.div>
             )}
@@ -320,8 +321,8 @@ function CategoryAccordionItem({ category, formData, onChange }) {
       <AccordionPrimitive.Content className="overflow-hidden text-sm data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
         <div className="pb-4 px-4">
 
-          {/* Bundle callout */}
-          {hasBundle && bundleRange && (
+          {/* Bundle callout — hidden in Campaign / Project mode */}
+          {!isCampaign && hasBundle && bundleRange && (
             <div className="mb-3 px-3 py-2 rounded-md bg-secondary/60 flex items-center justify-between">
               <span className="text-xs text-muted-foreground">
                 Bundle (select all)

@@ -290,6 +290,10 @@ function MultipliersTab({ config, onConfigChange }) {
     })
   }
 
+  function updateCampaignScalar(value) {
+    onConfigChange({ ...config, campaignScalar: value })
+  }
+
   return (
     <div className="space-y-8">
       <p className="text-xs text-muted-foreground">
@@ -338,6 +342,29 @@ function MultipliersTab({ config, onConfigChange }) {
           </div>
         )
       })}
+
+      {/* Campaign / Project mode scalar */}
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+          Campaign / Project Mode
+        </p>
+        <p className="text-xs text-muted-foreground mb-3">
+          Applied to all service ranges when scope type is set to Campaign / Project.
+          Does not affect Full Engagement pricing or bundle ranges.
+        </p>
+        <div className="space-y-1">
+          <div className="grid grid-cols-[1fr_120px] gap-4 items-center py-1.5 px-2 rounded hover:bg-muted/30 transition-colors">
+            <span className="text-sm text-foreground">Standalone delivery scalar</span>
+            <NumberInput
+              defaultValue={config.campaignScalar ?? 1.12}
+              step="0.01"
+              min="0"
+              onCommit={updateCampaignScalar}
+            />
+          </div>
+        </div>
+        <Separator className="mt-6" />
+      </div>
     </div>
   )
 }
