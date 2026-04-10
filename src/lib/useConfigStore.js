@@ -6,7 +6,7 @@
 import * as React from 'react'
 import { DEFAULT_CONFIG } from './configDefaults.js'
 
-const STORAGE_KEY = 'august-estimator-config-v1'
+const STORAGE_KEY = 'august-estimator-config-v2'
 
 export function useConfigStore() {
   const [config, setConfig] = React.useState(() => {
