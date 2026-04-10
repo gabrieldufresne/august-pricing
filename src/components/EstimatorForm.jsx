@@ -37,7 +37,6 @@ const DEFAULT_FORM = {
   websiteDevPlatform: null,
   websiteDesignPageCount: '11_20',
   websiteDevPageCount: '11_20',
-  landingPageCount: '1',
   packagingSkuCount: '1',
   complexity: {
     brand_strategy: 'medium',

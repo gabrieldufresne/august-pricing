@@ -17,7 +17,6 @@ import {
   WEBSITE_DEV,
   PAGE_COUNT_TIERS_DESIGN,
   PAGE_COUNT_TIERS_DEV,
-  PAGE_COUNT_TIERS_LANDING,
   SKU_COUNT_TIERS,
 } from '@/lib/pricingConfig'
 
@@ -268,7 +267,6 @@ function CategoryAccordionItem({ category, formData, onChange }) {
     onChange('complexity', { ...formData.complexity, [catId]: val })
   }
 
-  const showLandingPageCount = isMiscDesign && selectedIds.includes('landing_page')
   const showSkuCount = isMiscDesign && selectedIds.includes('packaging')
   const showPageCountDesign = catId === 'website_design' && selectedCount > 0
   const showPageCountDev = isWebsiteDev && selectedCount > 0
@@ -356,25 +354,6 @@ function CategoryAccordionItem({ category, formData, onChange }) {
           )}
 
           {/* Per-service scope modifiers for Misc Design */}
-          <AnimatePresence>
-            {showLandingPageCount && (
-              <motion.div
-                key="landing-page-count"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.15 }}
-              >
-                <TierSelector
-                  label="Landing page count"
-                  tiers={PAGE_COUNT_TIERS_LANDING}
-                  value={formData.landingPageCount}
-                  onChange={(v) => onChange('landingPageCount', v)}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
           <AnimatePresence>
             {showSkuCount && (
               <motion.div

@@ -14,7 +14,6 @@ import {
   BANDWIDTH_MULTIPLIERS,
   PAGE_COUNT_TIERS_DESIGN,
   PAGE_COUNT_TIERS_DEV,
-  PAGE_COUNT_TIERS_LANDING,
   SKU_COUNT_TIERS,
   CLIENT_CONTRIBUTIONS,
   CONTRACTOR_MARKUP_RATE,
@@ -169,12 +168,8 @@ function computeCategoryResult(category, formData, globalMult, ctx) {
     pageMultiplier = getMultiplier(PAGE_COUNT_TIERS_DEV, tier, 1.0)
   }
 
-  // Step 3c — Page count multiplier (Landing Page in Misc Design)
-  let landingPageMultiplier = 1.0
+  // Step 3c — SKU multiplier (only applies per-service in Misc Design)
   let skuMultiplier = 1.0
-
-  // Step 4 — SKU multiplier (only applies per-service in Misc Design)
-  // These are handled per-service below for misc_design, but we track here for bundling
 
   // For misc_design — per-service modifiers
   let miscLow = 0
@@ -190,15 +185,6 @@ function computeCategoryResult(category, formData, globalMult, ctx) {
       if (isCampaign) {
         svcLow *= campaignScalar
         svcHigh *= campaignScalar
-      }
-
-      if (svc.modifier === 'page_count_landing') {
-        const tierId = formData.landingPageCount
-        landingPageMultiplier = getMultiplier(PAGE_COUNT_TIERS_LANDING, tierId, 1.0)
-        // '4_plus' has null multiplier → redirect flag, treat as 1.0 for math
-        const mult = landingPageMultiplier || 1.0
-        svcLow = svcLow * mult
-        svcHigh = svcHigh * mult
       }
 
       if (svc.modifier === 'sku_count') {
@@ -281,7 +267,6 @@ function evaluateFlags(formData, lineItems) {
   const hasHighComplexity = complexities.includes('high')
   const allLowComplexity = complexities.length > 0 && complexities.every((c) => c === 'low')
   const isEnterprise = formData.clientScale === 'enterprise'
-  const landingPage4Plus = formData.landingPageCount === '4_plus'
   const sku7Plus = formData.packagingSkuCount === '7_plus'
   const overrideAmt = Math.abs(parseFloat(formData.customDiscountValue) || 0)
   const overrideType = formData.customDiscountType ?? '%'
@@ -300,10 +285,6 @@ function evaluateFlags(formData, lineItems) {
 
   if (sku7Plus) {
     flags.push('7+ SKUs on packaging — too complex for a formula. Consider a custom quote.')
-  }
-
-  if (landingPage4Plus) {
-    flags.push('4+ landing pages selected — redirect to Website Design category for accurate pricing.')
   }
 
   // Email Design & Production flags

@@ -58,23 +58,19 @@ export const BANDWIDTH_MULTIPLIERS = [
 // ---------------------------------------------------------------------------
 
 export const PAGE_COUNT_TIERS_DESIGN = [
-  { id: '1_5',   label: '1–5 pages',   multiplier: 0.60 },
-  { id: '6_10',  label: '6–10 pages',  multiplier: 0.80 },
-  { id: '11_20', label: '11–20 pages', multiplier: 1.00 },
-  { id: '20_plus',label: '20+ pages',  multiplier: 1.25 },
+  { id: '1',      label: '1 page',      multiplier: 0.35 },
+  { id: '2_5',    label: '2–5 pages',   multiplier: 0.60 },
+  { id: '6_10',   label: '6–10 pages',  multiplier: 0.80 },
+  { id: '11_20',  label: '11–20 pages', multiplier: 1.00 },
+  { id: '20_plus',label: '20+ pages',   multiplier: 1.25 },
 ]
 
 export const PAGE_COUNT_TIERS_DEV = [
-  { id: '1_5',   label: '1–5 pages',   multiplier: 0.50 },
-  { id: '6_10',  label: '6–10 pages',  multiplier: 0.75 },
-  { id: '11_20', label: '11–20 pages', multiplier: 1.00 },
-  { id: '20_plus',label: '20+ pages',  multiplier: 1.20 },
-]
-
-export const PAGE_COUNT_TIERS_LANDING = [
-  { id: '1',    label: '1 page',   multiplier: 1.00 },
-  { id: '2_3',  label: '2–3 pages',multiplier: 1.60 },
-  { id: '4_plus',label: '4+ pages', multiplier: null, flag: 'redirect_website_design' },
+  { id: '1',      label: '1 page',      multiplier: 0.30 },
+  { id: '2_5',    label: '2–5 pages',   multiplier: 0.50 },
+  { id: '6_10',   label: '6–10 pages',  multiplier: 0.75 },
+  { id: '11_20',  label: '11–20 pages', multiplier: 1.00 },
+  { id: '20_plus',label: '20+ pages',   multiplier: 1.20 },
 ]
 
 // ---------------------------------------------------------------------------
@@ -135,13 +131,12 @@ export const VISUAL_IDENTITY = {
 export const WEBSITE_DESIGN = {
   id: 'website_design',
   label: 'Website Design',
-  bundleRange: { low: 18000, high: 27000 },
+  bundleRange: { low: 16500, high: 25000 },
   pageCountTiers: PAGE_COUNT_TIERS_DESIGN,
   services: [
     { id: 'info_architecture',    label: 'Information Architecture',         low: 2000, high:  3000, floor: 1000 },
     { id: 'ux_wireframes',        label: 'UX / Wireframes',                  low: 3500, high:  5500, floor: 1750 },
-    { id: 'ui_desktop',           label: 'UI Design — Desktop',              low: 5500, high:  8000, floor: 1500 },
-    { id: 'ui_mobile',            label: 'UI Design — Mobile',               low: 2500, high:  3500, floor:  750 },
+    { id: 'ui_desktop',           label: 'UI Design',                        low: 6500, high:  9500, floor: 2000 },
     { id: 'design_system',        label: 'Design System / Component Library',low: 4500, high:  6500, floor: 2250 },
     { id: 'art_direction',        label: 'Art Direction',                    low: 2500, high:  4000, floor: 1250 },
     { id: 'prototype_handoff',    label: 'Prototype / Dev Handoff',          low: 1750, high:  2500, floor:  750 },
@@ -253,7 +248,6 @@ export const MISC_DESIGN = {
   label: 'Misc Design',
   bundleRange: null, // no bundle pricing
   services: [
-    { id: 'landing_page',     label: 'Landing Page Design',           low: 2000, high:  3000, floor:  500, modifier: 'page_count_landing' },
     { id: 'packaging',        label: 'Packaging Design',              low: 3500, high:  5500, floor: 1250, modifier: 'sku_count' },
     { id: 'pitch_deck',       label: 'Presentation / Pitch Deck Design', low: 2500, high: 4000, floor: 1250, modifier: null },
     { id: 'social_templates', label: 'Social Media Creative Templates',  low: 1500, high: 2500, floor:  750, modifier: null },
