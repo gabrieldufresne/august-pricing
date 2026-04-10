@@ -4,6 +4,23 @@ Three features documented below. Each is self-contained but shares a common cons
 
 ---
 
+## Completion Log
+
+| Feature | Status | Shipped | Commit |
+|---|---|---|---|
+| Feature 1 — Scope Type Selector | ✅ Complete | Prior session | `c31c9e2` |
+| Feature 2 — Email Design & Production | ✅ Complete | 2026-04-10 | `bfc3a55` |
+| Feature 3 — Partner Arrangement | ✅ Complete (modified) | 2026-04-10 | `bfc3a55` |
+
+**Feature 3 scope note (2026-04-10):** Prime/Sub was removed from scope — Gabriel confirmed this is already covered by the existing Contractors section. Shipped with Referral Fee (% / $ toggle, internal-only, excluded from clipboard) and Co-Agency (awareness-only, blue info card in result, NOTE line in clipboard) only.
+
+**Styling changes shipped alongside (2026-04-10):**
+- Discounts block moved directly above Grand Total, styled green
+- Breakdown ranges now inline (`$X,XXX – $X,XXX`) instead of stacked
+- Contractor row vertical padding tightened
+
+---
+
 ## Feature 1 — Scope Type Selector ✅ COMPLETE
 
 **Summary:** A global form toggle — `Full Engagement` vs `Campaign / Project` — that changes how services are priced. In Campaign mode, bundle logic is disabled and individual service ranges reflect standalone delivery costs (no shared-discovery amortization).
@@ -189,7 +206,7 @@ The `key={resetKey}` pattern on the scrollable tab content div already causes al
 
 ---
 
-## Feature 2 — Email Design & Production Category
+## Feature 2 — Email Design & Production Category ✅ COMPLETE
 
 **Summary:** A new eighth category added to `pricingConfig.js` alongside the existing seven. No bundle pricing. Flow Design & Setup requires a sub-selector for flow type. Custom HTML Build triggers a subcontractor flag. Klaviyo is a third-party platform — account setup is a pass-through consideration.
 
@@ -310,7 +327,7 @@ The `custom_html_build` flag surfaced by the engine will appear in the existing 
 
 ---
 
-## Feature 3 — Partner Arrangement Section
+## Feature 3 — Partner Arrangement Section ✅ COMPLETE (modified — see Completion Log)
 
 **Summary:** A new form section (distinct from Contractors) handling three agency partnership structures: Referral Fee (internal deduction — never client-facing), Co-Agency (noted for awareness — no total impact), and Prime/Sub (partner executes under August's contract — rolls into grand total with editable markup).
 
