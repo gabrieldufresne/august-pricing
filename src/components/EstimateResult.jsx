@@ -199,6 +199,14 @@ export function EstimateResult({ result, onReset }) {
   const hasContractors = result.contractors?.length > 0
   const hasFlags = result.flags?.length > 0
 
+  const effectiveDiscountPct = hasDiscounts
+    ? Math.round(
+        (result.appliedDiscounts ?? [])
+          .filter(d => d.type === '%')
+          .reduce((sum, d) => sum + d.value, 0)
+      )
+    : 0
+
   return (
     <motion.div
       key="result"
@@ -224,11 +232,11 @@ export function EstimateResult({ result, onReset }) {
           </span>
         </div>
         <p className="text-[28px] font-semibold tracking-tight tabular-nums leading-none">
-          <AnimatedPrice value={result.augustFeeLow} />
+          <AnimatedPrice value={result.subtotalLow} />
           {' – '}
-          <AnimatedPrice value={result.augustFeeHigh} />
+          <AnimatedPrice value={result.subtotalHigh} />
         </p>
-        <p className="text-xs text-muted-foreground mt-1.5">CAD · before partner costs</p>
+        <p className="text-xs text-muted-foreground mt-1.5">CAD · before partner costs and discounts</p>
       </motion.div>
 
       {/* 1b. Referral Fee + Your Net (internal only) */}
@@ -359,9 +367,16 @@ export function EstimateResult({ result, onReset }) {
 
       {/* 5. Grand Total */}
       <motion.div variants={fadeUp} className="rounded-lg bg-foreground px-4 py-3.5">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-background/60 mb-1">
-          Grand Total
-        </p>
+        <div className="flex items-center justify-between mb-1">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-background/60">
+            Grand Total
+          </p>
+          {hasDiscounts && effectiveDiscountPct > 0 && (
+            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-background/10 text-background/70 tabular-nums">
+              −{effectiveDiscountPct}% discount applied
+            </span>
+          )}
+        </div>
         <p className="text-xl font-semibold tracking-tight tabular-nums text-background leading-none">
           <AnimatedPrice value={result.grandTotalLow} />
           {' – '}
