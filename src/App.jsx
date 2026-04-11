@@ -1,7 +1,8 @@
 import * as React from 'react'
-import { AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { EstimatorForm } from './components/EstimatorForm'
 import { EstimateResult } from './components/EstimateResult'
+import { FloatingEstimateBar } from './components/FloatingEstimateBar'
 import { useConfigStore } from './lib/useConfigStore'
 import { ConfigEditor } from './components/ConfigEditor'
 import './index.css'
@@ -11,6 +12,20 @@ export default function App() {
   const resetRef = React.useRef(null)
   const { config, setConfig, resetConfig } = useConfigStore()
   const [editorOpen, setEditorOpen] = React.useState(false)
+
+  const panelRef = React.useRef(null)
+  const [isEstimatePanelVisible, setIsEstimatePanelVisible] = React.useState(false)
+
+  React.useEffect(() => {
+    const el = panelRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsEstimatePanelVisible(entry.isIntersecting),
+      { threshold: 0.15 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
 
   function handleReset() {
     if (resetRef.current) resetRef.current()
@@ -50,7 +65,7 @@ export default function App() {
           </div>
 
           {/* RIGHT — Result (sticky) */}
-          <div className="lg:sticky lg:top-[73px]">
+          <motion.div ref={panelRef} layoutId="estimate-panel" className="lg:sticky lg:top-[73px]">
             <div className="rounded-xl border border-border bg-card p-6">
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
                 Estimate
@@ -63,10 +78,17 @@ export default function App() {
                 />
               </AnimatePresence>
             </div>
-          </div>
+          </motion.div>
 
         </div>
       </div>
+
+      {/* Floating estimate bar — mobile/tablet only */}
+      <AnimatePresence>
+        {result && !isEstimatePanelVisible && (
+          <FloatingEstimateBar result={result} />
+        )}
+      </AnimatePresence>
 
       {/* Config Editor */}
       <ConfigEditor
