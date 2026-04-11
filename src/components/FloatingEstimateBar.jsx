@@ -13,14 +13,19 @@ export function FloatingEstimateBar({ result }) {
 
   return (
     <>
-      {/* Fixed bar */}
+      {/* Floating bar */}
       <motion.div
         layoutId="estimate-panel"
-        className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-background/85 backdrop-blur-md border-t border-border shadow-lg cursor-pointer"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        layout
+        className="fixed z-50 lg:hidden cursor-pointer rounded-2xl bg-card/90 backdrop-blur-md border border-border shadow-xl"
+        style={{
+          bottom: 'calc(1rem + env(safe-area-inset-bottom))',
+          left: '1rem',
+          right: '1rem',
+        }}
         onClick={() => setDrawerOpen(true)}
       >
-        <div className="px-6 py-4 flex items-center justify-between">
+        <div className="px-5 py-3.5 flex items-center justify-between">
           <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Grand Total
           </span>
@@ -29,11 +34,11 @@ export function FloatingEstimateBar({ result }) {
               {fmt(result.grandTotalLow)} – {fmt(result.grandTotalHigh)}
             </span>
             <svg
-              className="w-4 h-4 text-muted-foreground"
+              className="w-3.5 h-3.5 text-muted-foreground"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              strokeWidth={2}
+              strokeWidth={2.5}
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
             </svg>
