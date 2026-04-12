@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
 import { EstimatorForm } from './components/EstimatorForm'
 import { EstimateResult } from './components/EstimateResult'
 import { FloatingEstimateBar } from './components/FloatingEstimateBar'
@@ -65,28 +65,26 @@ export default function App() {
           </div>
 
           {/* RIGHT — Result (sticky) */}
-          <LayoutGroup id="estimate">
-            <motion.div ref={panelRef} layoutId="estimate-panel" layout className="lg:sticky lg:top-[73px]">
-              <div className="rounded-xl border border-border bg-card p-6">
-                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
-                  Estimate
-                </p>
-                <AnimatePresence mode="wait">
-                  <EstimateResult
-                    key={result ? 'has-result' : 'empty'}
-                    result={result}
-                    onReset={handleReset}
-                  />
-                </AnimatePresence>
-              </div>
-            </motion.div>
+          <div ref={panelRef} className="lg:sticky lg:top-[73px]">
+            <div className="rounded-xl border border-border bg-card p-6">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+                Estimate
+              </p>
+              <AnimatePresence mode="wait">
+                <EstimateResult
+                  key={result ? 'has-result' : 'empty'}
+                  result={result}
+                  onReset={handleReset}
+                />
+              </AnimatePresence>
+            </div>
+          </div>
 
-            <AnimatePresence>
-              {result && !isEstimatePanelVisible && (
-                <FloatingEstimateBar result={result} />
-              )}
-            </AnimatePresence>
-          </LayoutGroup>
+          <AnimatePresence>
+            {result && !isEstimatePanelVisible && (
+              <FloatingEstimateBar result={result} />
+            )}
+          </AnimatePresence>
 
         </div>
       </div>

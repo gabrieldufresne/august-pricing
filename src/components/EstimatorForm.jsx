@@ -257,14 +257,14 @@ export function EstimatorForm({ onResultChange, onResetRef, config = null }) {
         </div>
       </Section>
 
-      {/* B — Client Contribution */}
-      <Section title="Client Contributions">
-        <ClientContribution formData={formData} onChange={handleChange} />
-      </Section>
-
-      {/* C — Services */}
+      {/* B — Services */}
       <Section title="Services">
         <ServiceSelector formData={formData} onChange={handleChange} />
+      </Section>
+
+      {/* C — Client Contributions */}
+      <Section title="Client Contributions">
+        <ClientContribution formData={formData} onChange={handleChange} />
       </Section>
 
       {/* D — Client Profile */}

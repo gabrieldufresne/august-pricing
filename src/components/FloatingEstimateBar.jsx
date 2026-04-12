@@ -15,8 +15,10 @@ export function FloatingEstimateBar({ result }) {
     <>
       {/* Floating bar */}
       <motion.div
-        layoutId="estimate-panel"
-        layout
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 8 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
         className="fixed z-50 lg:hidden cursor-pointer rounded-2xl bg-card/90 backdrop-blur-md border border-border shadow-xl"
         style={{
           bottom: 'calc(1rem + env(safe-area-inset-bottom))',
