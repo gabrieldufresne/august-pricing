@@ -167,9 +167,11 @@ function PlatformSelector({ value, onChange }) {
 
 function ServiceRow({ service, checked, onToggle }) {
   return (
-    <div
+    <motion.div
       className="flex items-center justify-between py-2 px-1 rounded-md hover:bg-secondary/50 transition-colors cursor-pointer group"
       onClick={() => onToggle(service.id)}
+      whileTap={{ scale: 0.97 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
     >
       <div className="flex items-center gap-3">
         <Checkbox
@@ -190,7 +192,7 @@ function ServiceRow({ service, checked, onToggle }) {
       <span className="text-xs text-muted-foreground shrink-0 ml-4 tabular-nums">
         {fmtRange(service.low, service.high)}
       </span>
-    </div>
+    </motion.div>
   )
 }
 

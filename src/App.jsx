@@ -1,5 +1,28 @@
 import * as React from 'react'
 import { AnimatePresence } from 'framer-motion'
+
+// Scalloped bottom edge — renders a row of upward semi-circles in bg color
+// that visually "tears" the bottom of the receipt card
+function ScallopedEdge() {
+  let d = 'M0,14 L0,7'
+  for (let x = 0; x < 400; x += 20) {
+    d += ` Q${x + 5},0 ${x + 10},7 Q${x + 15},14 ${x + 20},7`
+  }
+  d += ' L400,14 Z'
+  return (
+    <div style={{ marginLeft: '-1.5rem', marginRight: '-1.5rem', width: 'calc(100% + 3rem)', display: 'block' }}>
+      <svg
+        viewBox="0 0 400 14"
+        preserveAspectRatio="none"
+        width="100%"
+        height="14"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path d={d} fill="hsl(var(--background))" />
+      </svg>
+    </div>
+  )
+}
 import { EstimatorForm } from './components/EstimatorForm'
 import { EstimateResult } from './components/EstimateResult'
 import { FloatingEstimateBar } from './components/FloatingEstimateBar'
@@ -66,7 +89,7 @@ export default function App() {
 
           {/* RIGHT — Result (sticky) */}
           <div ref={panelRef} className="lg:sticky lg:top-[73px]">
-            <div className="rounded-xl border border-border bg-card p-6">
+            <div className="rounded-t-xl bg-card pt-6 px-6 pb-0 overflow-visible">
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
                 Estimate
               </p>
@@ -77,6 +100,7 @@ export default function App() {
                   onReset={handleReset}
                 />
               </AnimatePresence>
+              <ScallopedEdge />
             </div>
           </div>
 

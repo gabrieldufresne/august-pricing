@@ -321,7 +321,7 @@ export const CLIENT_CONTRIBUTIONS = [
     label: 'Client provides photography & imagery',
     description: 'Client supplies photo/video assets; removes photographer from contractor list',
     discounts: [
-      { categoryId: 'website_design', pct: 0.15, label: 'Client-supplied photography', serviceId: 'art_direction' },
+      { categoryId: 'website_design', pct: 0.15, label: 'Client-supplied photography' },
     ],
     removeContractors: ['photographer'],
   },

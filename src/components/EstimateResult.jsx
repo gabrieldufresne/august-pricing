@@ -4,6 +4,9 @@ import { ChevronDown, Copy, RotateCcw, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
+// Motion-enhanced Button for whileTap press states
+const MotionButton = motion(Button)
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -50,6 +53,27 @@ const stagger = {
   visible: { transition: { staggerChildren: 0.06 } },
 }
 
+// Shared enter/exit variant for height-animated list items
+const listItem = {
+  initial: { opacity: 0, height: 0 },
+  animate: { opacity: 1, height: 'auto', transition: { duration: 0.2, ease: [0.4, 0, 0.2, 1] } },
+  exit:    { opacity: 0, height: 0,    transition: { duration: 0.2, ease: [0.4, 0, 0.2, 1] } },
+}
+
+// ---------------------------------------------------------------------------
+// TicketSeparator — dashed rule with punch-hole circles at each edge
+// ---------------------------------------------------------------------------
+
+function TicketSeparator() {
+  return (
+    <div className="relative overflow-visible -mx-6 my-5">
+      <div className="border-t border-dashed border-border" />
+      <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-background" />
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-6 h-6 rounded-full bg-background" />
+    </div>
+  )
+}
+
 // ---------------------------------------------------------------------------
 // CollapsibleSection — local accordion primitive (no dependency on shadcn)
 // ---------------------------------------------------------------------------
@@ -64,7 +88,7 @@ function CollapsibleSection({ title, badge, defaultOpen = false, children }) {
         className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-secondary/40 transition-colors"
       >
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
             {title}
           </span>
           {badge != null && (
@@ -122,6 +146,14 @@ function EmptyState() {
 
 export function EstimateResult({ result, onReset }) {
   const [copied, setCopied] = React.useState(false)
+  const flashRef = React.useRef(null)
+
+  // Grand total background pulse on value change
+  React.useEffect(() => {
+    if (flashRef.current && result?.grandTotalLow !== undefined) {
+      animate(flashRef.current, { opacity: [1, 0] }, { duration: 0.4, ease: 'easeOut' })
+    }
+  }, [result?.grandTotalLow, result?.grandTotalHigh])
 
   if (!result) return <EmptyState />
 
@@ -264,6 +296,11 @@ export function EstimateResult({ result, onReset }) {
         </motion.div>
       )}
 
+      {/* Ticket separator — dashed rule with punch-hole circles */}
+      <motion.div variants={fadeUp}>
+        <TicketSeparator />
+      </motion.div>
+
       {/* 3. Itemized Breakdown */}
       <motion.div variants={fadeUp}>
         <CollapsibleSection
@@ -274,26 +311,27 @@ export function EstimateResult({ result, onReset }) {
           <div className="divide-y divide-border">
             {result.lineItems.map((item) => (
               <div key={item.categoryId} className="px-4 py-3">
-                {/* Main row */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-sm font-medium text-foreground">{item.label}</span>
-                      {item.isBundle && (
-                        <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-secondary text-muted-foreground">
-                          Bundle
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-[11px] text-muted-foreground mt-0.5 capitalize">
-                      {item.complexity} complexity · ×{item.multiplier}
-                      {item.platform && ` · ${item.platform}`}
-                    </p>
+                {/* Label row with dotted leader */}
+                <div className="flex items-end">
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="text-sm font-medium text-foreground">{item.label}</span>
+                    {item.isBundle && (
+                      <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-secondary text-muted-foreground">
+                        Bundle
+                      </span>
+                    )}
                   </div>
-                  <p className="text-xs font-medium text-foreground tabular-nums shrink-0">
+                  <span className="flex-1 border-b border-dotted border-border/50 mx-2 mb-1 min-w-2" />
+                  <span className="text-xs font-medium text-foreground tabular-nums shrink-0">
                     {fmt(item.adjLow)} – {fmt(item.adjHigh)}
-                  </p>
+                  </span>
                 </div>
+
+                {/* Complexity meta */}
+                <p className="text-[11px] text-muted-foreground mt-0.5 capitalize">
+                  {item.complexity} complexity · ×{item.multiplier}
+                  {item.platform && ` · ${item.platform}`}
+                </p>
 
                 {/* Client contribution discount rows */}
                 {item.discounts?.length > 0 && (
@@ -326,13 +364,21 @@ export function EstimateResult({ result, onReset }) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {result.contractors.map((c) => (
-                    <tr key={c.id}>
-                      <td className="py-1.5 text-foreground">{c.label}</td>
-                      <td className="py-1.5 text-right tabular-nums text-muted-foreground">{fmt(c.cost)}</td>
-                      <td className="py-1.5 text-right tabular-nums font-medium text-foreground">{fmt(c.billed)}</td>
-                    </tr>
-                  ))}
+                  <AnimatePresence initial={false}>
+                    {result.contractors.map((c) => (
+                      <motion.tr
+                        key={c.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <td className="py-1.5 text-foreground">{c.label}</td>
+                        <td className="py-1.5 text-right tabular-nums text-muted-foreground">{fmt(c.cost)}</td>
+                        <td className="py-1.5 text-right tabular-nums font-medium text-foreground">{fmt(c.billed)}</td>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
                 </tbody>
                 <tfoot>
                   <tr className="border-t border-border">
@@ -349,54 +395,51 @@ export function EstimateResult({ result, onReset }) {
         </motion.div>
       )}
 
-      {/* 4b. Discounts — right above Grand Total */}
+      {/* 4b. Discounts */}
       {hasDiscounts && (
         <motion.div variants={fadeUp}>
-          <div className="rounded-lg border border-green-200 bg-green-50 divide-y divide-green-100">
-            {result.appliedDiscounts.map((d, i) => (
-              <div key={i} className="flex items-center justify-between px-3 py-2">
-                <span className="text-xs text-green-700">{d.label}</span>
-                <span className="text-xs font-medium tabular-nums text-green-700">
-                  {d.type === '%' ? `−${d.value}%` : `−${fmt(d.value)}`}
-                </span>
-              </div>
-            ))}
+          <div className="rounded-lg border border-green-200 bg-green-50 divide-y divide-green-100 overflow-hidden">
+            <AnimatePresence initial={false}>
+              {result.appliedDiscounts.map((d, i) => (
+                <motion.div
+                  key={`${d.label}-${d.value}`}
+                  initial={listItem.initial}
+                  animate={listItem.animate}
+                  exit={listItem.exit}
+                  className="overflow-hidden"
+                >
+                  <div className="flex items-center justify-between px-3 py-2">
+                    <span className="text-xs text-green-700">{d.label}</span>
+                    <span className="text-xs font-medium tabular-nums text-green-700">
+                      {d.type === '%' ? `−${d.value}%` : `−${fmt(d.value)}`}
+                    </span>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         </motion.div>
       )}
 
-      {/* 5. Grand Total */}
-      <motion.div variants={fadeUp} className="rounded-lg bg-foreground px-4 py-3.5">
-        <div className="flex items-center justify-between mb-1">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-background/60">
-            Grand Total
-          </p>
-          {hasDiscounts && effectiveDiscountPct > 0 && (
-            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-background/10 text-background/70 tabular-nums">
-              −{effectiveDiscountPct}% discount applied
-            </span>
-          )}
-        </div>
-        <p className="text-xl font-semibold tracking-tight tabular-nums text-background leading-none">
-          <AnimatedPrice value={result.grandTotalLow} />
-          {' – '}
-          <AnimatedPrice value={result.grandTotalHigh} />
-        </p>
-        <p className="text-[11px] text-background/60 mt-1">CAD · August fees + partner costs</p>
-      </motion.div>
-
       {/* 6. Flags */}
       {hasFlags && (
         <motion.div variants={fadeUp} className="space-y-2">
-          {result.flags.map((flag, i) => (
-            <div
-              key={i}
-              className="flex gap-2.5 items-start rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5"
-            >
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-              <p className="text-xs text-amber-800">{flag}</p>
-            </div>
-          ))}
+          <AnimatePresence initial={false}>
+            {result.flags.map((flag, i) => (
+              <motion.div
+                key={flag}
+                initial={listItem.initial}
+                animate={listItem.animate}
+                exit={listItem.exit}
+                className="overflow-hidden"
+              >
+                <div className="flex gap-2.5 items-start rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5">
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                  <p className="text-xs text-amber-800">{flag}</p>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </motion.div>
       )}
 
@@ -417,25 +460,67 @@ export function EstimateResult({ result, onReset }) {
 
       {/* 7. Actions */}
       <motion.div variants={fadeUp} className="flex gap-2 pt-1">
-        <Button
+        <MotionButton
           variant="outline"
           size="sm"
           className="flex-1 h-8 text-xs gap-1.5"
+          whileTap={{ scale: 0.96 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 25 }}
           onClick={handleCopy}
         >
           <Copy className="w-3 h-3" />
           {copied ? 'Copied!' : 'Copy Estimate'}
-        </Button>
-        <Button
+        </MotionButton>
+        <MotionButton
           variant="ghost"
           size="sm"
           className="h-8 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+          whileTap={{ scale: 0.96 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 25 }}
           onClick={onReset}
         >
           <RotateCcw className="w-3 h-3" />
           Reset
-        </Button>
+        </MotionButton>
       </motion.div>
+
+      {/* Ticket separator before Grand Total */}
+      <motion.div variants={fadeUp}>
+        <TicketSeparator />
+      </motion.div>
+
+      {/* 5. Grand Total — last item, sits flush against scalloped edge */}
+      <motion.div
+        variants={fadeUp}
+        className="relative overflow-hidden pb-5"
+      >
+        {/* Background pulse overlay — flashes on value change */}
+        <div
+          ref={flashRef}
+          className="absolute inset-0 bg-foreground/5 pointer-events-none"
+          style={{ opacity: 0 }}
+        />
+
+        <div className="relative">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              Grand Total
+            </p>
+            {hasDiscounts && effectiveDiscountPct > 0 && (
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-secondary text-muted-foreground tabular-nums">
+                −{effectiveDiscountPct}% discount applied
+              </span>
+            )}
+          </div>
+          <p className="text-xl font-semibold tracking-tight tabular-nums text-foreground leading-none">
+            <AnimatedPrice value={result.grandTotalLow} />
+            {' – '}
+            <AnimatedPrice value={result.grandTotalHigh} />
+          </p>
+          <p className="text-[11px] text-muted-foreground mt-1">CAD · August fees + partner costs</p>
+        </div>
+      </motion.div>
+
     </motion.div>
   )
 }

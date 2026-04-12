@@ -95,4 +95,35 @@ The August Fee hero shows `subtotalLow/High` (pre-discount). The Grand Total sho
 
 ### Form section order
 
-Services → Client Contributions → Client Profile → Timeline → Resource Considerations → Partner Arrangement → Discounts.
+Scope Type → Project Basics (includes Client Profile, no Notes field) → Services → Client Contributions → Timeline → Resource Considerations → Partner Arrangement → Discounts.
+
+Client Profile (client scale + location) was merged into Project Basics. Notes field was removed from the UI (field stays in state/clipboard output). 8 sections total, down from 9.
+
+### Section sticky stack
+
+Each `Section` in EstimatorForm is `position: sticky` with `stickyTop` values in 44px increments: 56, 100, 144, 188, 232, 276, 320, 364. Later sections have higher `zIndex` (10 + stackIndex). Scroll-driven scale (1→0.97) and box-shadow deepen via `scrollY.on('change')` subscribed in a `useEffect`, writing to `useMotionValue`s directly. `stickyPointRef` (a plain ref, not state) stores the natural offsetTop minus stickyTop — measured once in `useLayoutEffect`.
+
+### Estimate panel — receipt styling
+
+The right-column estimate panel is styled as a receipt card:
+- **No border, no bottom border-radius** (`rounded-t-xl bg-card`, border removed). Card reads against the warm off-white page background without a stroke.
+- **ScallopedEdge** (`src/App.jsx`): inline SVG as the last child of the panel wrapper. Generates a path of alternating up/down quadratic beziers (20px wave period) filled with `hsl(var(--background))`, creating a torn-receipt bottom edge. Uses negative margins to bleed full card width.
+- **TicketSeparator** (`src/components/EstimateResult.jsx`): dashed rule with `bg-background` punch-hole circles (no border) that straddle the card edge via `-mx-6`. Used twice — between August Fee hero and Breakdown, and between action buttons and Grand Total.
+- **Grand Total** sits last in the result, on white background (dark theme removed). Text uses `text-foreground` / `text-muted-foreground`.
+- **Breakdown line items** use a dotted leader pattern: `flex items-end` row with a `flex-1 border-b border-dotted border-border/50` spacer between label and price.
+
+### Framer Motion patterns in use
+
+- `whileInView` entrance (opacity 0→1, y 16→0, `once: true`) on each Section
+- `layout` + `AnimatePresence` for bandwidth toggle width expansion (shows `+5%` / `+15%` inside button when selected)
+- `AnimatePresence` height animation (`height: 0 → 'auto'`) on discount rows and flag items
+- `whileTap={{ scale: 0.96/0.97 }}` spring on ToggleGroupItems, ServiceRows, and Buttons
+- Grand total flash: `animate(ref, { opacity: [1, 0] })` via imported `animate` function watching `grandTotalLow/High`
+
+### ClientContribution cards
+
+`src/components/ClientContribution.jsx` — 2×2 responsive card grid (single col below `sm`). Each card is a `motion.div` with `whileTap`, `animate` background color, and Phosphor icons (regular/duotone weight toggle). Selected state shows a `CheckCircle` badge top-right and discount pills below the description. Pills use `CATEGORY_LABELS` lookup built from `CATEGORIES`.
+
+### Bandwidth toggle
+
+Internal bandwidth toggles in Resource Considerations show `+5%` / `+15%` inline when selected (derived from multiplier), animated with Framer Motion `layout` + `AnimatePresence`. The external description `<p>` below the toggle group was removed. The `Open` toggle is unchanged.
